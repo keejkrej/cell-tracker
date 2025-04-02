@@ -14,6 +14,7 @@ dependencies = [
     "tifffile>=2021.7.0",
     "trackpy>=0.5.0",
     "tqdm>=4.62.0",
+    "scikit-image>=0.19.0",
 ]
 
 [project.optional-dependencies]
