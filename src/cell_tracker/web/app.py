@@ -8,12 +8,12 @@ from PIL import Image
 from matplotlib import pyplot as plt
 import os
 import pandas as pd
-from onedcelltrack import functions
+from cell_tracker.core import functions
 from skimage.segmentation import find_boundaries
 
 from simulations_app import SimulationsApp
 
-class OnedcelltrackApp:
+class CellTrackerApp:
     def __init__(self, experiments, base_path):
         self.app = Flask(__name__)
         simulations_blueprint = SimulationsApp().blueprint
@@ -221,5 +221,5 @@ if __name__ == "__main__":
     base_path='/project/ag-moonraedler/MAtienza/cell_lines_paper/pipeline/'
     experiments = [directory for directory in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, directory)) and '.' not in directory]
     
-    app = OnedcelltrackApp(experiments, base_path)
+    app = CellTrackerApp(experiments, base_path)
     app.app.run(debug=True, host='10.153.25.95', port=8899)
