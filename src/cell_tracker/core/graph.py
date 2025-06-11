@@ -1,3 +1,5 @@
+"""Cell segmentation and graph construction using Cellpose models."""
+
 from cellpose import models
 import numpy as np
 import networkx as nx
@@ -9,9 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CellGrapher:
-    """
-    Perform cell segmentation and graph construction.
-    """
+    """Performs cell segmentation and constructs adjacency graphs from microscopy images."""
     
     # ========================================================
     # Constructor
@@ -20,9 +20,7 @@ class CellGrapher:
     def __init__(self,
             use_gpu: bool = True,
         ):
-        """
-        Initialize the Cellpose model, using Cellpose SAM by default.
-        """
+        """Initialize the Cellpose model with optional GPU acceleration."""
         self.model = models.CellposeModel(
             gpu=use_gpu,
         )
@@ -32,16 +30,12 @@ class CellGrapher:
     # ========================================================
     
     def _segment(self, images: list[np.ndarray]) -> list[np.ndarray]:
-        """
-        Segment cells in a list of images and return a list of masks.
-        """
+        """Segment cells in images using the Cellpose model and return masks."""
         masks, _, _, _ = self.model.eval(images)
         return masks
 
     def _graph(self, mask: np.ndarray) -> nx.Graph:
-        """
-        Turn a mask into a graph weighted by adjacency.
-        """
+        """Create a NetworkX graph from a segmentation mask with adjacency-weighted edges."""
         mask_copy = mask.copy()
 
         rag = graph.rag_mean_color(np.stack([mask_copy, mask_copy, mask_copy], axis=-1), mask_copy)
@@ -72,9 +66,7 @@ class CellGrapher:
     # ========================================================
     
     def graph_cells(self, images: list[np.ndarray]) -> list[nx.Graph]:
-        """
-        Pipeline for CellGrapher.
-        """
+        """Segment cells in images and return corresponding adjacency graphs."""
         masks = self._segment(images)
         graphs: list[nx.Graph] = []
         for i, mask in enumerate(masks):
