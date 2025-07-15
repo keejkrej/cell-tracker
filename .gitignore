@@ -122,3 +122,4 @@ dmypy.json
 *.swp
 *~ 
 /shared_files
+/examples
