@@ -7,8 +7,13 @@
       "Bash(conda create:*)",
       "Bash(conda activate:*)",
       "Bash(pip install:*)",
-      "Bash(conda run:*)"
+      "Bash(conda run:*)",
+      "Bash(uv pip install:*)",
+      "Bash(uv venv:*)",
+      "Bash(source:*)",
+      "WebFetch(domain:cellpose.readthedocs.io)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

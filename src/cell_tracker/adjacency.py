@@ -57,6 +57,10 @@ class AdjacencyGraphBuilder:
         """
         rag = ski_graph.RAG(mask)
         
+        # Remove background node (label 0) if it exists
+        if 0 in rag.nodes():
+            rag.remove_node(0)
+        
         for edge in rag.edges():
             region1, region2 = edge
             

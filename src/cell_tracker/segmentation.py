@@ -1,8 +1,7 @@
 import numpy as np
-from typing import List, Dict, Optional, Tuple, Union
+from typing import List, Dict, Optional, Union
 import tifffile
 from cellpose import models
-from cellpose.core import use_gpu
 
 
 class CellposeSegmenter:
@@ -15,38 +14,23 @@ class CellposeSegmenter:
     
     def __init__(
         self,
-        model_type: str = 'cyto2',
         gpu: bool = True,
-        diameter: Optional[float] = None,
-        flow_threshold: float = 0.4,
-        cellprob_threshold: float = 0.0
     ):
         """
         Initialize the CellposeSegmenter.
         
         Parameters
         ----------
-        model_type : str
-            Type of Cellpose model to use ('cyto', 'cyto2', 'nuclei', etc.)
         gpu : bool
             Whether to use GPU for computation
-        diameter : float, optional
-            Expected cell diameter in pixels. If None, will be estimated
-        flow_threshold : float
-            Flow threshold parameter for Cellpose
-        cellprob_threshold : float
-            Cell probability threshold for Cellpose
         """
-        self.gpu = use_gpu() if gpu else False
-        self.model = models.CellposeModel(model_type=model_type, gpu=self.gpu)
-        self.diameter = diameter
-        self.flow_threshold = flow_threshold
-        self.cellprob_threshold = cellprob_threshold
+        self.gpu = gpu
+        # In Cellpose 4.x, use the default model
+        self.model = models.CellposeModel(gpu=self.gpu)
         
     def segment_image(
         self,
         image: np.ndarray,
-        channels: Optional[List[int]] = None
     ) -> Dict[str, np.ndarray]:
         """
         Segment a single image using Cellpose.
@@ -55,9 +39,6 @@ class CellposeSegmenter:
         ----------
         image : np.ndarray
             Input image with shape (height, width) or (height, width, channels)
-        channels : list of int, optional
-            Channel configuration [cyto_channel, nuclear_channel]
-            Default is [0, 0] for grayscale or [1, 3] for RGB with nuclei
             
         Returns
         -------
@@ -66,33 +47,25 @@ class CellposeSegmenter:
             - 'masks': Segmentation masks (2D array)
             - 'flows': Flow fields from Cellpose
             - 'styles': Style vectors
-            - 'diams': Estimated diameters
         """
-        if channels is None:
-            if image.ndim == 2:
-                channels = [0, 0]
-            else:
-                channels = [2, 1]  # membrane channel for cyto, nuclear channel
+        # In Cellpose 4.x, eval returns (masks, flows, styles)
         
-        masks, flows, styles, diams = self.model.eval(
+        # In Cellpose 4.x, eval returns (masks, flows, styles)
+        result = self.model.eval(
             image,
-            diameter=self.diameter,
-            channels=channels,
-            flow_threshold=self.flow_threshold,
-            cellprob_threshold=self.cellprob_threshold
         )
+        
+        masks, flows, styles = result
         
         return {
             'masks': masks,
             'flows': flows,
             'styles': styles,
-            'diams': diams
         }
     
     def segment_timelapse(
         self,
         timelapse_path: str,
-        channels: Optional[List[int]] = None,
         frames: Optional[Union[int, List[int]]] = None
     ) -> List[Dict[str, np.ndarray]]:
         """
@@ -102,8 +75,6 @@ class CellposeSegmenter:
         ----------
         timelapse_path : str
             Path to the timelapse TIFF file
-        channels : list of int, optional
-            Channel configuration for Cellpose
         frames : int or list of int, optional
             Specific frames to process. If None, processes all frames
             
@@ -136,7 +107,7 @@ class CellposeSegmenter:
             if frame_data.ndim == 3 and frame_data.shape[0] <= 3:
                 frame_data = np.transpose(frame_data, (1, 2, 0))
             
-            result = self.segment_image(frame_data, channels=channels)
+            result = self.segment_image(frame_data)
             result['frame'] = frame_idx
             results.append(result)
             
